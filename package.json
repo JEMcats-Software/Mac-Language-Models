@@ -1,7 +1,7 @@
 {
   "name": "mac-language-models",
   "version": "1.0.0",
-  "description": "Interact with LLMs locally on your Mac!",
+  "description": "Interact with LLMs locally on your Mac using Apple Silicon!",
   "main": "index.js",
   "scripts": {
     "start": "electron .",
