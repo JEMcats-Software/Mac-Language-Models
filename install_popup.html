@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLMs Installer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
+
+        .icon.checked {
+            background-color: #4caf50;
+        }
+
+        .icon.unchecked {
+            background-color: #f44336;
+        }
+
+        .icon svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+    </style>
+</head>
+
+<body>
+    <span style="display: none;" class="icon checked">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M9 16.2l-4.2-4.2-1.4 1.4L9 19 21 7l-1.4-1.4z"></path>
+        </svg>
+    </span>
+    <span style="display: none;" class="icon unchecked">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z">
+            </path>
+        </svg>
+    </span>
+    <h1>Some Required Packages Are Not Installed</h1>
+    <ul class="list">
+        <li id="PY" class="list-item">
+            <span style="margin-right: 5px;">Python</span>
+        </li>
+        <li id="PYV" class="list-item">
+            <span style="margin-right: 5px;">Python Venv</span>
+        </li>
+        <li id="EI" class="list-item">
+            <span style="margin-right: 5px;">Exo Installed</span>
+        </li>
+    </ul>
+    <div id="restart_div" style=" width: 100%; display: none; text-align: center; align-items: center;">
+        <h2>The Install Is Complete!</h2>
+        <button style="width: 100px;" onclick="send_restart_command()" >Restart MLMs</button>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Extract the "installed" parameter
+        const installed = JSON.parse(urlParams.get('installed'))
+        const installed_array = Object.entries(installed)
+        let requiredIDs = []
+        const port = urlParams.get('port')
+        let amount_uninstalled;
+
+        function displayCheck(id, installed) {
+            if (installed == true) {
+                let checkmark = document.createElement('span')
+                checkmark.classList.add('icon', 'checked');
+                checkmark.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M9 16.2l-4.2-4.2-1.4 1.4L9 19 21 7l-1.4-1.4z"></path>
+                    </svg>
+                `
+                checkmark.id = `${id}_icon`
+                document.getElementById(id).appendChild(checkmark)
+            } else if (installed == false) {
+                let checkmark = document.createElement('span')
+                checkmark.classList.add('icon', 'unchecked');
+                checkmark.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                    </svg>
+                `
+                checkmark.id = `${id}_icon`
+                let install_button = document.createElement('button')
+                install_button.innerText = "Install Required Package"
+                install_button.id = `${id}_button`
+                if (amount_uninstalled === 1) {
+                    install_button.disabled = true
+                } else {
+                    install_button.disabled = false
+                    amount_uninstalled = 1
+                }
+                if (id == "PY") {
+                    install_button.addEventListener('click', function () {
+                        alert("When you opened this app, you should have been prompted to install Command Line Developer Tools. When you close this prompt, the app will restart. If you have used the installer prompt already when the app restarts, Python will be installed; otherwise, if you have not installed Command Line Developer Tools, you will be prompted again. Please click install.")
+                        send_restart_command()
+                    })
+                } else {
+                    install_button.addEventListener('click', function () {
+                        send_install_command(id)
+                    }) 
+                }
+
+                document.getElementById(id).appendChild(checkmark)
+                document.getElementById(id).appendChild(install_button)
+            }
+        }
+        installed_array.forEach(([key, value]) => {
+            displayCheck(key, value)
+            requiredIDs.push(key)
+        });
+
+        console.log(requiredIDs)
+        function findNext(id, list) {
+            // Find the index of the given ID
+            const currentIndex = list.indexOf(id);
+
+            // If the ID is not found or it's the last one, return null
+            if (currentIndex === -1 || currentIndex === list.length - 1) {
+                return null; // Or use `undefined` if you prefer
+            }
+
+            // Return the next ID in the list
+            return list[currentIndex + 1];
+        }
+
+        function send_restart_command() {
+            const response = fetch(`http://localhost:${port}/restart_app`); 
+        }
+
+        async function send_install_command(id) {
+            try {
+                document.getElementById(`${id}_button`).disabled = true
+                document.getElementById(`${id}_icon`).outerHTML = `
+                    <svg id="${id}_icon" class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" width="200" height="200" style="shape-rendering: auto; display: block; background: none" xmlns:xlink="http://www.w3.org/1999/xlink"><g><rect fill="none" height="20" width="20" y="19" x="19">
+                    <animate calcMode="discrete" begin="0s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="19" x="40">
+                    <animate calcMode="discrete" begin="0.125s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="19" x="61">
+                    <animate calcMode="discrete" begin="0.25s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="40" x="19">
+                    <animate calcMode="discrete" begin="0.875s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="40" x="61">
+                    <animate calcMode="discrete" begin="0.375s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="61" x="19">
+                    <animate calcMode="discrete" begin="0.75s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="61" x="40">
+                    <animate calcMode="discrete" begin="0.625s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><rect fill="#1cb2bc" height="20" width="20" y="61" x="61">
+                    <animate calcMode="discrete" begin="0.5s" repeatCount="indefinite" dur="1s" keyTimes="0;0.125;1" values="#6af0f8;#1cb2bc;#1cb2bc" attributeName="fill"></animate>
+                    </rect><g></g></g><!-- [ldio] generated by https://loading.io --></svg>
+                `
+                const response = await fetch(`http://localhost:${port}/install_dependency?dependency=${id}`); // Make the GET request
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = response.status // Parse the response as JSON
+                console.log(data)
+                if (data === 200) {
+                    console.log('got yes')
+                    document.getElementById(`${id}_icon`).outerHTML = `
+                        <span class="icon checked" id="${id}_icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M9 16.2l-4.2-4.2-1.4 1.4L9 19 21 7l-1.4-1.4z"></path>
+                            </svg>
+                        </span>
+                    `
+
+                    document.getElementById(`${id}_button`).style.display = 'none'
+                    if (id == "EI") {
+                        document.getElementById('restart_div').style.display = ''
+                    } else {
+                    const nextRequireMent = findNext(id, requiredIDs)
+                    const secondNextRequireMent = findNext(nextRequireMent, requiredIDs)
+                    const thirdNextRequireMent = findNext(secondNextRequireMent, requiredIDs)
+                    if (document.getElementById(`${nextRequireMent}_button`).style.display !== 'none') {
+                        document.getElementById(`${nextRequireMent}_button`).disabled = false
+                    } else if (document.getElementById(`${secondNextRequireMent}_button`).style.display !== 'none') {
+                        document.getElementById(`${secondNextRequireMent}_button`).disabled = false
+                    } else if (document.getElementById(`${thirdNextRequireMent}_button`).style.display !== 'none') {
+                        document.getElementById(`${thirdNextRequireMent}_button`).disabled = false
+                    } else {
+                        document.getElementById('restart_div').style.display = ''
+                    }
+                }
+                } else {
+                    console.log('got error1')
+                    document.getElementById(`${id}_icon`).outerHTML = `
+                        <span class="icon unchecked" id="${id}_icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                            </svg>
+                        </span>
+                    `
+                    document.getElementById(`${id}_button`).disabled = false
+                }
+            } catch (error) {
+                    if (error != "TypeError: Cannot read properties of null (reading 'style')") {
+                        console.log('got error')
+                        document.getElementById(`${id}_icon`).outerHTML = `
+                    <span class="icon unchecked" id="${id}_icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+                        </svg>
+                    </span>
+                    `
+                    document.getElementById(`${id}_button`).disabled = false
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

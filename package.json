@@ -1,0 +1,38 @@
+{
+  "name": "mac-language-models",
+  "version": "1.0.0",
+  "description": "Interact with LLMs locally on your Mac!",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder build -m --arm64"
+  },
+  "author": "JEMcats.Software",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "sudo-prompt": "^9.2.1"
+  },
+  "build": {
+    "appId": "com.jemcats-software.mac-language-models",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "executableName": "MLMs",
+      "icon": "Appicon.icns",
+      "target": "dmg"
+    },
+    "files": [
+      "index.js", 
+      "package.json",
+      "index.html",
+      "install_popup.html"
+    ]
+  }
+}
